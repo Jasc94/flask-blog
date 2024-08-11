@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-success" role="alert">
+       {{ message }} 
+       <a href="{{ url_for('index') }}" class="alert-link">Go back to home</a>.
+    </div>
+{% endfor %}
+
+<h1>Add blog post...</h1>
+<br>
+<div class="shadow p-3 bg-body-tertiary rounded">
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control") }}
+        <br>
+        {{ form.author.label(class="form-label") }}
+        {{ form.author(class="form-control") }}
+        <br>
+        {{ form.slug.label(class="form-label") }}
+        {{ form.slug(class="form-control") }}
+        <br>
+        {{ form.content.label(class="form-label") }}
+        {{ form.content(class="form-control", rows="5") }}
+        <br>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+</div>
+<br><br>
+<table class="table table-striped">
+    <tbody>
+        {% for our_user in our_users %}
+        <tr>
+            <td>
+                {{ our_user.id }}.<a href="{{ url_for('update', id=our_user['id']) }}">{{ our_user.name}}</a> - {{ our_user.email }} - {{ our_user.favorite_color }} - <a href="{{ url_for('delete', id=our_user.id )}}" class="btn btn-danger">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+
+    </tbody>
+</table>
+<br>
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-success" role="alert">
+       {{ message }} 
+       <a href="{{ url_for('index') }}" class="alert-link">Go back to home</a>.
+    </div>
+{% endfor %}
+
+{% if name %}
+<h1>Hello {{ name }}!!</h1>
+<br>
+<img src="{{ url_for('static', filename='images/morning.jpg') }}" alt="">
+<br><br>
+<p id="demo">stuff</p>
+<script src="{{ url_for('static', filename='js/myfile.js') }}"></script>
+{% else %}
+<h1>What's your name?</h1>
+<br>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+
+    {{ form.name.label(class="form-label") }}
+    {{ form.name(class="form-control") }}
+    <br>
+    {{ form.submit(class="btn btn-primary") }}
+
+</form>
+{% endif %}
+
+{% endblock %}

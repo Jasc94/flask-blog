@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-success" role="alert">
+       {{ message }} 
+       <a href="{{ url_for('posts') }}" class="alert-link">Go back to home</a>.
+    </div>
+{% endfor %}
+
+<h1>Blog Posts...</h1>
+<br>
+{% for post in posts %}
+
+    <div class="card shadow">
+        <h5 class="card-header">@{{ post.author }}<span class="card-header-date"> - {{ post.date_posted }}</span></h5>
+        <div class="card-body">
+          <h5 class="card-title">{{ post.title }}</h5>
+          <p class="card-text">{{ post.content }}</p>
+          <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-primary">Go to post</a>
+          <a href="{{ url_for('edit_post', id=post.id) }}" class="btn btn-secondary">Edit post</a>
+          <a href="{{ url_for('delete_post', id=post.id) }}" class="btn btn-danger">Delete post</a>
+        </div>
+      </div>
+    <br>
+
+{% endfor %}
+
+{% endblock %}

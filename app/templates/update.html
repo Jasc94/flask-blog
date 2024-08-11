@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-success" role="alert">
+       {{ message }} 
+       <a href="{{ url_for('index') }}" class="alert-link">Go back to home</a>.
+    </div>
+{% endfor %}
+
+{% if name %}
+<h1>Update User!!</h1>
+<br>
+{% else %}
+<h1>Update User</h1>
+<br>
+<div class="shadow p-3 bg-body-tertiary rounded">
+    <form action="/update/{{ user_to_update.id }}" method="post">
+        {{ form.hidden_tag() }}
+
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control", value=user_to_update.name) }}
+        <br>
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", value=user_to_update.email) }}
+        <br>
+        {{ form.favorite_color.label(class="form-label") }}
+        {{ form.favorite_color(class="form-control") }}
+        <br>
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('delete', id=id )}}" class="btn btn-danger">Delete</a>
+    </form>
+</div>
+<br>
+
+{% endif %}
+
+{% endblock %}
