@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired, EqualTo, Length
 from wtforms.widgets import TextArea
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import yaml
@@ -24,9 +25,20 @@ db = SQLAlchemy(app)
 # To migrate changes in the database
 migrate = Migrate(app, db)
 
+# Flask Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.query.get(int(user_id))
+
+
 # Create Model
-class Users(db.Model):
+class Users(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False, unique=True)
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     favorite_color = db.Column(db.String(120))
@@ -65,6 +77,7 @@ class NamerForm(FlaskForm):
 # Create a Form Class
 class UserForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
+    username = StringField("Username", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired()])
     favorite_color = StringField("Favorite color")
     password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Passwords must match!')])
@@ -83,14 +96,54 @@ class PostForm(FlaskForm):
     slug = StringField('Slug', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+# Login Form
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
 node_modules_path = '/opt/node_modules'
 
 @app.route('/node_modules/<path:filename>')
 def node_modules(filename):
     return send_from_directory(node_modules_path, filename)
 
+# Login Page
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = Users.query.filter_by(username=form.username.data).first()
+        if user:
+            # Check the password hash
+            if check_password_hash(user.password_hash, form.password.data):
+                login_user(user)
+                flash('Login Sucessful!!')
+                return redirect(url_for('dashboard'))
+            else:
+                flash('Wrong password - Try again')
+        else:
+            flash('The user doesnt exist - Try again')
+
+    return render_template('login.html', form=form)
+
+# Dashboard Page
+@app.route('/dashboard', methods=['GET', 'POST'])
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
+
+# Logout
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out')
+    return redirect(url_for('login'))
+
 
 @app.route('/add-post', methods=['GET', 'POST'])
+# @login_required
 def add_post():
     form = PostForm()
 
@@ -121,6 +174,7 @@ def post(post_id):
     return render_template('post.html', post=post)
 
 @app.route('/posts/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_post(id):
     post = Posts.query.get_or_404(id)
     form = PostForm()
@@ -166,11 +220,12 @@ def add_user():
         user = Users.query.filter_by(email=form.email.data).first()
         if user is None:
             hashed_pw = generate_password_hash(form.password_hash.data, "sha256")
-            user = Users(name=form.name.data, email=form.email.data, favorite_color=form.favorite_color.data, password_hash=hashed_pw)
+            user = Users(username=form.username.data, name=form.name.data, email=form.email.data, favorite_color=form.favorite_color.data, password_hash=hashed_pw)
             db.session.add(user)
             db.session.commit()
         name = form.name.data
         form.name.data = ''
+        form.username.data = ''
         form.email.data = ''
         form.favorite_color.data = ''
         form.password_hash.data = ''
@@ -190,6 +245,7 @@ def update(id):
         user_to_update.name = request.form['name']
         user_to_update.email = request.form['email']
         user_to_update.favorite_color = request.form['favorite_color']
+        user_to_update.username = request.form['username']
         try:
             db.session.commit()
             flash('User Updated Successfully')
