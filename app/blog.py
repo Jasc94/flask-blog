@@ -259,7 +259,17 @@ def delete_post(id):
         flash('You must be the post creator to delete it')
         return redirect(url_for('posts'))
         
-# Others
+# Others        
+@app.route('/admin')
+@login_required
+def admin():
+    id = current_user.id
+    if id == 11:
+        return render_template('admin.html')
+    else:
+        flash('Sorry you are not an admin')
+        return redirect(url_for('dashboard'))
+
 @app.route('/')
 def index():
     return render_template('index.html')
