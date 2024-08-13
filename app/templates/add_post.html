@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
 
 {% for message in get_flashed_messages() %}
@@ -20,9 +19,6 @@
         {{ form.title.label(class="form-label") }}
         {{ form.title(class="form-control") }}
         <br>
-        {{ form.author.label(class="form-label") }}
-        {{ form.author(class="form-control") }}
-        <br>
         {{ form.slug.label(class="form-label") }}
         {{ form.slug(class="form-control") }}
         <br>
@@ -31,6 +27,8 @@
         <br>
         {{ form.submit(class="btn btn-primary") }}
     </form>
+    {{ ckeditor.load() }}
+    {{ ckeditor.config(name='content') }}
 </div>
 <br><br>
 <table class="table table-striped">

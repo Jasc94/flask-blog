@@ -10,10 +10,8 @@
     </div>
 {% endfor %}
 
-{% if name %}
-<h1>Update User!!</h1>
-<br>
-{% else %}
+{% if id == current_user.id %}
+
 <h1>Update User</h1>
 <br>
 <div class="shadow p-3 bg-body-tertiary rounded">
@@ -37,6 +35,12 @@
     </form>
 </div>
 <br>
+
+{% else %}
+
+<div class="alert alert-warning" role="alert">
+    Sorry! you can't edit this user 
+    <a href="{{ url_for('index') }}" class="alert-link">Go back to home</a>.
 
 {% endif %}
 
