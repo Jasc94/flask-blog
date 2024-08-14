@@ -4,8 +4,11 @@ from flask_migrate import Migrate
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_ckeditor import CKEditor
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+import uuid
 from datetime import datetime
 import yaml
+import os
 
 from webforms import NamerForm, UserForm, PasswordForm, PostForm, LoginForm, SearchForm
 
@@ -20,6 +23,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_cred['user']}:{db_cre
 
 # A key for html files (csrf token kind of)
 app.config['SECRET_KEY'] = "a secure key"
+
+# Where to save the files
+app.config['UPLOAD_FOLDER'] = 'static/images/'
 
 # Initialize database
 db = SQLAlchemy(app)
@@ -113,11 +119,25 @@ def update(id):
         user_to_update.name = request.form['name']
         user_to_update.email = request.form['email']
         user_to_update.favorite_color = request.form['favorite_color']
+        user_to_update.about_author = request.form['about_author']
         user_to_update.username = request.form['username']
+        # Save the image
+        profile_pic = request.files['profile_pic']
+        # Grab Image Name
+        pic_filename = secure_filename(profile_pic.filename) # Method to make sure it's safe
+        # user id + image name to avoid duplicates
+        pic_name = "{}_{}".format(user_to_update.id, pic_filename)
+        # Save the path to the database (the user field that will then update the database)
+        user_to_update.profile_pic = pic_name
+        # Now save the image to the path we have designated
+        pic_path = os.path.join(app.config['UPLOAD_FOLDER'], pic_name)
+        profile_pic.save(pic_path)
+
+
         try:
             db.session.commit()
             flash('User Updated Successfully')
-            return render_template('update.html', form=form, user_to_update=user_to_update)
+            return render_template('update.html', id=user_to_update.id, form=form, user_to_update=user_to_update)
         except:
             flash('Error! Looks like there was a problem')
             return render_template('update.html', form=form, user_to_update=user_to_update)
@@ -312,7 +332,9 @@ class Users(db.Model, UserMixin):
     name = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
     favorite_color = db.Column(db.String(120))
+    about_author = db.Column(db.Text(), nullable=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow())
+    profile_pic = db.Column(db.String(), nullable=True) # We are just gonna save the name/path of the image, not the image itself
     # Password
     password_hash = db.Column(db.String(128))
     # A user can have many posts

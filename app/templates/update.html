@@ -15,7 +15,7 @@
 <h1>Update User</h1>
 <br>
 <div class="shadow p-3 bg-body-tertiary rounded">
-    <form action="/update/{{ user_to_update.id }}" method="post">
+    <form action="/update/{{ user_to_update.id }}" method="post" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
 
         {{ form.name.label(class="form-label") }}
@@ -30,6 +30,11 @@
         {{ form.favorite_color.label(class="form-label") }}
         {{ form.favorite_color(class="form-control", value=user_to_update.favorite_color) }}
         <br>
+        <textarea name="about_author" class="form-control">{{ user_to_update.about_author }}</textarea>
+        <br>
+        {{ form.profile_pic.label(class="form-label") }}
+        {{ form.profile_pic(class="form-control", value=user_to_update.profile_pic) }}
+        <br>
         {{ form.submit(class="btn btn-primary") }}
         <a href="{{ url_for('delete', id=user_to_update.id )}}" class="btn btn-danger">Delete</a>
     </form>
@@ -37,7 +42,8 @@
 <br>
 
 {% else %}
-
+{{ id }}
+{{current_user.id}}
 <div class="alert alert-warning" role="alert">
     Sorry! you can't edit this user 
     <a href="{{ url_for('index') }}" class="alert-link">Go back to home</a>.

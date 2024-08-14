@@ -21,7 +21,7 @@
       <div class="container">
         <div class="row">
           <div class="col-4">
-            <img src="{{ url_for('static', filename='images/profile_pic_default.png') }}" alt="" width="150">
+            <img src="{{ url_for('static', filename='images/')+ current_user.profile_pic }}" alt="" width="150">
           </div>
           <div class="col-8">
             <h5 class="card-title">Welcome to your dashboard!</h5>
@@ -30,6 +30,8 @@
               <strong>User Id:</strong>{{ current_user.id }}<br>
               <strong>Email:</strong>{{ current_user.email }}<br>
               <strong>Favorite Color:</strong>{{ current_user.favorite_color }}<br>
+              <strong>About Author:</strong>{{ current_user.about_author }}<br>
+              <strong>Profile Pic:</strong>{{ url_for('static', filename='images/')+ current_user.profile_pic }}<br>
               <strong>Date Joined:</strong>{{ current_user.date_added }}<br>
             </p>
             <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm">Logout</a>
