@@ -13,7 +13,7 @@ ENV NODE_PATH=/opt/node_modules
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && apt-get install -y git
 
-ENV FLASK_APP=app/blog.py
+ENV FLASK_APP=blog.py
 
 EXPOSE 5001
 

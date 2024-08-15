@@ -17,7 +17,7 @@ from webforms import NamerForm, UserForm, PasswordForm, PostForm, LoginForm, Sea
 app = Flask(__name__)
 ckeditor = CKEditor(app)
 # Add database
-with open('secrets.yaml') as _:
+with open('app/secrets.yaml') as _:
     db_cred = yaml.safe_load(_)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_cred['user']}:{db_cred['password']}@{db_cred['host']}:{db_cred['port']}/{db_cred['dbname']}"
 
