@@ -17,7 +17,7 @@ from webforms import NamerForm, UserForm, PasswordForm, PostForm, LoginForm, Sea
 app = Flask(__name__)
 ckeditor = CKEditor(app)
 # Add database
-with open('app/secrets.yaml') as _:
+with open('secrets.yaml') as _:
     db_cred = yaml.safe_load(_)
 app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{db_cred['user']}:{db_cred['password']}@{db_cred['host']}:{db_cred['port']}/{db_cred['dbname']}"
 
@@ -121,46 +121,58 @@ def update(id):
         user_to_update.favorite_color = request.form['favorite_color']
         user_to_update.about_author = request.form['about_author']
         user_to_update.username = request.form['username']
+
         # Save the image
         profile_pic = request.files['profile_pic']
-        # Grab Image Name
-        pic_filename = secure_filename(profile_pic.filename) # Method to make sure it's safe
-        # user id + image name to avoid duplicates
-        pic_name = "{}_{}".format(user_to_update.id, pic_filename)
-        # Save the path to the database (the user field that will then update the database)
-        user_to_update.profile_pic = pic_name
-        # Now save the image to the path we have designated
-        pic_path = os.path.join(app.config['UPLOAD_FOLDER'], pic_name)
-        profile_pic.save(pic_path)
 
-
-        try:
+        if profile_pic:
+            # Grab Image Name
+            pic_filename = secure_filename(profile_pic.filename) # Method to make sure it's safe
+            # user id + image name to avoid duplicates
+            pic_name = "{}_{}".format(user_to_update.id, pic_filename)
+            # Save the path to the database (the user field that will then update the database)
+            user_to_update.profile_pic = pic_name
+            # Now save the image to the path we have designated
+            pic_path = os.path.join(app.config['UPLOAD_FOLDER'], pic_name)
+            profile_pic.save(pic_path)
+            try:
+                db.session.commit()
+                flash('User Updated Successfully')
+                return render_template('update.html', id=user_to_update.id, form=form, user_to_update=user_to_update)
+            except:
+                flash('Error! Looks like there was a problem')
+                return render_template('update.html', form=form, user_to_update=user_to_update)
+        else:
             db.session.commit()
             flash('User Updated Successfully')
             return render_template('update.html', id=user_to_update.id, form=form, user_to_update=user_to_update)
-        except:
-            flash('Error! Looks like there was a problem')
-            return render_template('update.html', form=form, user_to_update=user_to_update)
+
     else:
         request.method == 'GET'
         return render_template('update.html', form=form, user_to_update=user_to_update, id=id)
 
 @app.route('/delete/<int:id>')
+@login_required
 def delete(id):
-    user_to_delete = Users.query.get_or_404(id)
-    name = None
-    form = UserForm()
+    if id == current_user.id:
+        user_to_delete = Users.query.get_or_404(id)
+        name = None
+        form = UserForm()
 
-    try:
-        db.session.delete(user_to_delete)
-        db.session.commit()
-        flash('User Deleted Succesfully')
-        our_users = Users.query.order_by(Users.date_added)
-        return render_template('add_user.html', form=form, name=name, our_users=our_users)
-    except:
-        flash('Whoops. There was a problem deleting the user')
-        our_users = Users.query.order_by(Users.date_added)
-        return render_template('add_user.html', form=form, name=name, our_users=our_users)
+        try:
+            db.session.delete(user_to_delete)
+            db.session.commit()
+            flash('User Deleted Succesfully')
+            our_users = Users.query.order_by(Users.date_added)
+            return render_template('add_user.html', form=form, name=name, our_users=our_users)
+        except:
+            flash('Whoops. There was a problem deleting the user')
+            our_users = Users.query.order_by(Users.date_added)
+            return render_template('add_user.html', form=form, name=name, our_users=our_users)
+    else:
+        flash('You cannot delete this user')
+        return redirect(url_for('dashboard'))
+
 
 @app.route('/test_pw', methods=['GET', 'POST'])
 def test_pw():
